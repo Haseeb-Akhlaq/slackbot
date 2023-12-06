@@ -40,70 +40,6 @@ def save_booking_details(
         return ("Error:", response.status_code, response.text)
 
 
-def simplify_events_data(data):
-    try:
-        data_str = json.dumps(data, indent=2)
-
-        completion = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": """You are a helpful data parsing assistant. You are given JSON with booked events data and you filter it down to only a set of keys we want. 
-                    This is the exact structure we need:
-
-                    Depending the upon the number of event return the list in this format.
-
-                    1. Event Name.
-                    2. Date and time(12hrs) In text form.
-                    3. Coordinator.
-
-                    Dont use double asteriks in the response for making it bold
-                    """,
-                },
-                {
-                    "role": "user",
-                    "content": f"Here is some data, parse and format it exactly as shown in the example: {data_str}",
-                },
-            ],
-            temperature=0,
-        )
-
-        simplified_data = completion.choices[0].message.content
-        return simplified_data
-
-    except Exception as e:
-        print("Error simplifying data:", e)
-        return None
-
-
-def simplify_single_event_data(data):
-    try:
-        data_str = json.dumps(data, indent=2)
-
-        completion = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": """You are a helpful data parsing assistant. You are given JSON with booked event data and display in well formated manner in numbered List """,
-                },
-                {
-                    "role": "user",
-                    "content": f"Here is some data, parse and format it: {data_str}. Dont use double asteriks",
-                },
-            ],
-            temperature=0,
-        )
-
-        simplified_data = completion.choices[0].message.content
-        return simplified_data
-
-    except Exception as e:
-        print("Error simplifying data:", e)
-        return None
-
-
 def get_all_booked_events():
     url = GOOGLE_SHEET_URL
 
@@ -113,8 +49,7 @@ def get_all_booked_events():
         records = response.json()
 
         if records:
-            simplified_records = simplify_events_data(records)
-            return simplified_records
+            return records
         else:
             return "No events are booked yet."
 
@@ -131,8 +66,7 @@ def get_details_of_single_event(event_name):
         records = response.json()
 
         if records:
-            simplified_records = simplify_single_event_data(records)
-            return simplified_records
+            return records
         else:
             return "No records found with the specified event name."
 
